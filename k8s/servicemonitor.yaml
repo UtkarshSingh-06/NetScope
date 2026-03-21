@@ -1,0 +1,20 @@
+# Prometheus Operator ServiceMonitor (optional). Deploy when using Prometheus Operator.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: network-observability-agent
+  namespace: network-observability
+  labels:
+    app: network-observability-agent
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: network-observability-agent
+  namespaceSelector:
+    matchNames:
+      - network-observability
+  endpoints:
+    - port: metrics
+      interval: 15s
+      path: /metrics
