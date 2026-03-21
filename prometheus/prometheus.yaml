@@ -1,0 +1,33 @@
+# Prometheus scrape config for network-observability agents.
+# Each DaemonSet pod exposes metrics on hostNetwork:9090; use pod IP or node IP.
+# With Prometheus Operator, use the ServiceMonitor in k8s/servicemonitor.yaml instead.
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Kubernetes pods: discover network-observability-agent DaemonSet pods.
+  - job_name: 'network-observability'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names: [network-observability]
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: network-observability-agent
+      - source_labels: [__meta_kubernetes_pod_node_name]
+        target_label: node
+      - source_labels: [__meta_kubernetes_pod_name]
+        target_label: pod
+      - source_labels: [__meta_kubernetes_pod_ip]
+        target_label: __address__
+        replacement: ${1}:9090
+      - target_label: __metrics_path__
+        replacement: /metrics
+      - source_labels: [__address__]
+        target_label: __address__
+        regex: (.+)
+        replacement: ${1}
+    metric_relabel_configs: []
