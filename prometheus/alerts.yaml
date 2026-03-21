@@ -1,0 +1,35 @@
+# Prometheus alerting rules for network observability.
+# Use with Prometheus alertmanager or Grafana alerting.
+
+groups:
+  - name: network-observability
+    interval: 30s
+    rules:
+      - alert: HighTCPRetransmissionRate
+        expr: |
+          sum by (node, src_namespace, dst_namespace) (rate(network_observability_tcp_retransmissions_total[5m])) > 10
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High TCP retransmission rate"
+          description: "Node {{ $labels.node }} namespace {{ $labels.src_namespace }} -> {{ $labels.dst_namespace }} has >10 retrans/s (5m rate)."
+
+      - alert: PacketLossSpike
+        expr: |
+          sum by (node) (rate(network_observability_tcp_drops_total[5m])) > 5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Packet drops detected on node"
+          description: "Node {{ $labels.node }} has >5 drops/s (5m rate)."
+
+      - alert: NetworkObservabilityAgentDown
+        expr: |
+          count(up{job="network-observability"} == 1) < count(count by (node) (network_observability_tcp_bytes_sent_total))
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Network observability agent down on one or more nodes"
