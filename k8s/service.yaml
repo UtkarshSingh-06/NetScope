@@ -1,0 +1,18 @@
+# Headless service for DaemonSet pods; used by Prometheus to discover scrape targets.
+apiVersion: v1
+kind: Service
+metadata:
+  name: network-observability-agent
+  namespace: network-observability
+  labels:
+    app: network-observability-agent
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app: network-observability-agent
+  ports:
+    - name: metrics
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
