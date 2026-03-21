@@ -1,0 +1,12 @@
+# Optional: embed eBPF object in a ConfigMap (base64). Prefer baking into the image.
+# Create with: kubectl create configmap network-observability-ebpf -n network-observability --from-file=tcp_observability.o=../ebpf/tcp_observability.o
+# Then mount as in daemonset.yaml. Note: ConfigMap size limit 1MiB; large objects use init container or image.
+---
+# Placeholder - replace with actual object or remove and use image volume.
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: network-observability-ebpf
+#   namespace: network-observability
+# binaryData:
+#   tcp_observability.o: <base64-encoded-ebpf-object>
