@@ -1,0 +1,35 @@
+# RBAC for network-observability agent (DaemonSet).
+# Least privilege: only list/watch pods and services on the node for IP enrichment.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: network-observability-agent
+  namespace: network-observability
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: network-observability-agent
+rules:
+  # Required for pod IP -> pod/namespace/service resolution (east-west visibility).
+  - apiGroups: [""]
+    resources: ["pods", "services"]
+    verbs: ["list", "watch", "get"]
+  # Optional: nodes for node name / topology labels.
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: network-observability-agent
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: network-observability-agent
+subjects:
+  - kind: ServiceAccount
+    name: network-observability-agent
+    namespace: network-observability
