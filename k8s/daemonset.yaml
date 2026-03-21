@@ -1,0 +1,82 @@
+# DaemonSet: one agent pod per node for kernel-level network observability.
+# Runs with hostNetwork and privileged (or specific capabilities) for eBPF.
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: network-observability-agent
+  namespace: network-observability
+  labels:
+    app: network-observability-agent
+spec:
+  selector:
+    matchLabels:
+      app: network-observability-agent
+  template:
+    metadata:
+      labels:
+        app: network-observability-agent
+    spec:
+      serviceAccountName: network-observability-agent
+      hostNetwork: true
+      hostPID: true
+      # Run on Linux nodes only; eBPF requires Linux kernel.
+      nodeSelector:
+        kubernetes.io/os: linux
+      tolerations:
+        - operator: Exists
+      containers:
+        - name: agent
+          image: network-observability/agent:latest
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: true
+            # Alternative to privileged (if your cluster allows):
+            # capabilities:
+            #   add: [SYS_ADMIN, SYS_RESOURCE, BPF, PERFMON, NET_ADMIN]
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          args:
+            - --metrics-addr=:9090
+            - --ebpf-object=/etc/network-observability/tcp_observability.o
+            - --node-name=$(NODE_NAME)
+            - --poll-interval=15s
+            - --enable-kubernetes=true
+          ports:
+            - name: metrics
+              containerPort: 9090
+              hostPort: 9090
+          volumeMounts:
+            # Optional: mount ConfigMap with tcp_observability.o to override in-image object.
+            - name: ebpf-object
+              mountPath: /etc/network-observability
+              readOnly: true
+              # If ConfigMap not used, image must contain /etc/network-observability/tcp_observability.o
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9090
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 9090
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: ebpf-object
+          configMap:
+            name: network-observability-ebpf
+            optional: true
+      # If eBPF object is shipped in the image instead of ConfigMap, remove the volume
+      # and set --ebpf-object to path inside the image.
