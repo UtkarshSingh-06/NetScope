@@ -1,0 +1,153 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisCenteredZero": false, "axisLabel": "", "axisPlacement": "auto" }, "unit": "ns" },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "id": 1,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "single" } },
+      "targets": [
+        {
+          "expr": "avg by (node, src_namespace, dst_namespace) (network_observability_tcp_rtt_avg_nanoseconds)",
+          "legendFormat": "avg RTT {{node}} {{src_namespace}} -> {{dst_namespace}}",
+          "refId": "A"
+        }
+      ],
+      "title": "TCP RTT (p99) by namespace",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "short" },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "id": 2,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "single" } },
+      "targets": [
+        {
+          "expr": "sum by (node, src_namespace, dst_namespace) (rate(network_observability_tcp_retransmissions_total[5m]))",
+          "legendFormat": "{{node}} {{src_namespace}} -> {{dst_namespace}}",
+          "refId": "A"
+        }
+      ],
+      "title": "TCP retransmission rate by namespace",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "spectrum" }, "unit": "Bps" },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "id": 3,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "single" } },
+      "targets": [
+        {
+          "expr": "sum by (node) (rate(network_observability_tcp_bytes_sent_total[5m])) * 8",
+          "legendFormat": "sent {{node}}",
+          "refId": "A"
+        },
+        {
+          "expr": "sum by (node) (rate(network_observability_tcp_bytes_recv_total[5m])) * 8",
+          "legendFormat": "recv {{node}}",
+          "refId": "B"
+        }
+      ],
+      "title": "Throughput (bits/s) by node",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" }, "unit": "short" },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "id": 4,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "single" } },
+      "targets": [
+        {
+          "expr": "sum by (node, src_namespace) (rate(network_observability_tcp_drops_total[5m]))",
+          "legendFormat": "{{node}} {{src_namespace}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Packet drops by node and namespace",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "heatmap" }, "unit": "ns" },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 },
+      "id": 5,
+      "options": { "legend": { "displayMode": "list", "placement": "right" }, "tooltip": { "mode": "single" } },
+      "targets": [
+        {
+          "expr": "sum by (node, src_namespace, dst_namespace) (network_observability_tcp_rtt_samples_total)",
+          "legendFormat": "{{node}} {{src_namespace}} -> {{dst_namespace}}",
+          "refId": "A"
+        }
+      ],
+      "title": "RTT sample rate by service pair",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "thresholds" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 1 }] } },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 12, "x": 0, "y": 24 },
+      "id": 6,
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false } },
+      "targets": [
+        { "expr": "count(count by (node) (network_observability_tcp_bytes_sent_total))", "refId": "A" }
+      ],
+      "title": "Nodes reporting (agent count)",
+      "type": "stat"
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["network", "ebpf", "observability"],
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": false, "text": "Prometheus", "value": "Prometheus" },
+        "hide": 0,
+        "includeAll": false,
+        "name": "datasource",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "type": "datasource"
+      }
+    ]
+  },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Network Observability (eBPF)",
+  "uid": "network-observability-ebpf",
+  "version": 1,
+  "weekStart": ""
+}
