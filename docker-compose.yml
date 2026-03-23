@@ -1,0 +1,56 @@
+version: "3.8"
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - PROMETHEUS_URL=http://prometheus:9090
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-dev-secret-change-in-prod}
+    depends_on:
+      - prometheus
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_WS_URL=ws://localhost:8000
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yaml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./dashboards:/var/lib/grafana/dashboards
+
+  # Optional: Python scanner agent
+  scanner:
+    build: ./agents/python_scanner
+    environment:
+      - NETSCOPE_BACKEND_URL=http://backend:8000
+      - NETSCOPE_AGENT_TOKEN=${NETSCOPE_AGENT_TOKEN:-}
+    depends_on:
+      - backend
+
+volumes:
+  prometheus_data: {}
+  grafana_data: {}
