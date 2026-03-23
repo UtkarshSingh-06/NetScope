@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0a0e14;
+  --fg: #e6edf3;
+  --accent: #2dd4bf;
+  --muted: #8b949e;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-dark-800/80 backdrop-blur-sm border border-dark-500/50;
+  }
+  .card {
+    @apply glass rounded-lg p-4;
+  }
+}
