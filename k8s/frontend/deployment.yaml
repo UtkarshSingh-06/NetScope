@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: netscope-frontend
+  namespace: network-observability
+  labels:
+    app: netscope-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: netscope-frontend
+  template:
+    metadata:
+      labels:
+        app: netscope-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: netscope/frontend:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NEXT_PUBLIC_API_URL
+              value: "http://netscope-backend.network-observability:8000"
+            - name: NEXT_PUBLIC_WS_URL
+              value: "ws://netscope-backend.network-observability:8000"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: netscope-frontend
+  namespace: network-observability
+spec:
+  selector:
+    app: netscope-frontend
+  ports:
+    - port: 3000
+      targetPort: 3000
+      name: http
