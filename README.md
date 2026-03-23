@@ -1,6 +1,19 @@
 # NetScope
 
-**NetScope** is a cloud-native network observability platform (eBPF). A **kernel-level network observability system** for Kubernetes that monitors TCP latency, retransmissions, packet drops, and throughput **with zero application code changes**. Built with eBPF, Go, Prometheus, and Grafana—suitable for production-style deployments and resume-worthy for SDE / Cloud / DevOps roles.
+**NetScope** is an **AI-powered network observability and security platform** combining kernel-level eBPF monitoring with a full-stack dashboard, threat intelligence, intrusion detection, and real-time alerting. Built with eBPF (C), Go, FastAPI, Next.js, Prometheus, and Grafana—scalable from single-node to distributed multi-agent deployments.
+
+## Features
+
+- **Real-time network monitoring** — Live device tracking (IP, MAC, bandwidth, ports) via WebSockets
+- **AI anomaly detection** — Isolation Forest for device behavior profiling and anomaly scoring
+- **Threat intelligence** — AbuseIPDB, VirusTotal, Shodan integration with composite risk scoring
+- **IDS** — Port scan, ARP spoofing, MITM detection
+- **Alerting** — Severity levels; email, Slack, Discord notifications
+- **Auto-response** — Block suspicious IPs, terminate connections (Linux iptables)
+- **Full-stack dashboard** — React/Next.js with charts, network graph, alerts panel
+- **Backend APIs** — FastAPI with JWT auth, REST + WebSocket
+- **Distributed architecture** — Multiple scanning agents, central server
+- **Docker & Kubernetes** — Production-ready deployment
 
 ---
 
@@ -77,34 +90,45 @@ eBPF runs in the kernel with minimal overhead, no need to modify applications or
 
 ```
 NetScope/
+├── backend/                 # FastAPI application
+│   ├── app/
+│   │   ├── api/v1/          # REST + WebSocket endpoints
+│   │   ├── services/        # Threat intel, IDS, alerting, anomaly, Prometheus
+│   │   ├── websocket/       # Real-time streaming
+│   │   └── core/            # Auth, config
+│   ├── netscope_cli.py      # CLI (devices, alerts, threat lookup)
+│   └── requirements.txt
+├── frontend/                # Next.js dashboard
+│   ├── src/app/             # Pages (dashboard, alerts, login)
+│   └── src/components/      # Charts, device table, network graph
+├── agents/
+│   └── python_scanner/      # Device discovery, bandwidth, flow collection
 ├── ebpf/                    # Kernel eBPF programs (C)
-│   ├── tcp_observability.c  # TCP hooks and maps
-│   ├── headers/
-│   └── Makefile
-├── agent/                   # Userspace agent (Go)
-│   ├── main.go
-│   ├── ebpfimpl/            # eBPF load, attach, map/ringbuf read
-│   ├── metrics/             # Prometheus collector
-│   ├── k8s/                 # K8s API resolver (pod/ns/svc)
-│   ├── go.mod
-│   └── go.sum               # Run `go mod tidy` to generate
-├── k8s/                     # Kubernetes manifests
-│   ├── namespace.yaml
-│   ├── rbac.yaml
-│   ├── daemonset.yaml
-│   ├── service.yaml
-│   ├── servicemonitor.yaml
-│   └── configmap-ebpf.yaml  # Optional eBPF object
-├── prometheus/
-│   ├── prometheus.yaml      # Scrape config
-│   └── alerts.yaml          # Alert rules
-├── dashboards/
-│   └── network-observability.json
-├── scripts/
-│   ├── build.sh             # Build eBPF + Go binary
-│   └── deploy.sh            # Deploy to cluster
-├── Dockerfile               # Multi-stage: eBPF + Go + runtime
+├── agent/                   # Go eBPF userspace agent
+├── k8s/                     # Kubernetes manifests (agent, backend, frontend)
+├── docs/                    # Architecture, API, deployment
+├── .github/workflows/       # CI (backend, agent, eBPF, frontend)
+├── docker-compose.yml       # Full stack (backend, frontend, Prometheus, Grafana)
 └── README.md
+```
+
+## Quick Start
+
+```bash
+# Docker Compose (recommended)
+docker-compose up -d
+
+# Backend: http://localhost:8000  |  Frontend: http://localhost:3000
+# Login: admin / admin
+```
+
+```bash
+# CLI (from backend directory)
+cd backend && pip install -e .
+netscope login  # Get token, then:
+export NETSCOPE_TOKEN=<your-token>
+netscope devices
+netscope threat-lookup 8.8.8.8
 ```
 
 ---
