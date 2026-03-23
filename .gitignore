@@ -8,6 +8,22 @@ dist/
 # Go
 vendor/
 
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+
+# Node
+node_modules/
+.next/
+out/
+.npm
+
 # IDE
 .idea/
 .vscode/
