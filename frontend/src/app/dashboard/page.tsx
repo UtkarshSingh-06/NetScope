@@ -22,7 +22,7 @@ export default function Dashboard() {
         <h1 className="text-2xl font-display font-bold text-net-400">NetScope Dashboard</h1>
         <div className="flex items-center gap-2">
           <span className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500' : 'bg-red-500'}`} />
-          <span className="text-sm text-muted">{connected ? 'Live' : 'Disconnected'}</span>
+          <span className="text-sm text-slate-400">{connected ? 'Live' : 'Disconnected'}</span>
         </div>
       </header>
 
