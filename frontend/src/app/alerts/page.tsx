@@ -8,7 +8,11 @@ type Alert = { id: string; title: string; message: string; severity: string; cre
 
 export default function AlertsPage() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
-  const token = typeof window !== 'undefined' ? localStorage.getItem('netscope_token') : null;
+  const [token, setToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    setToken(localStorage.getItem('netscope_token'));
+  }, []);
 
   useEffect(() => {
     if (!token) return;
