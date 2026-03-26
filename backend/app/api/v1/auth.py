@@ -1,8 +1,8 @@
 """Authentication endpoints."""
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 
-from app.core.security import create_access_token, get_password_hash
+from app.core.security import create_access_token
 from app.schemas.common import TokenResponse
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -17,7 +17,7 @@ class LoginRequest(BaseModel):
 
 # In-memory user store for demo. Replace with DB in production.
 DEMO_USERS = {
-    "admin": get_password_hash("admin"),  # Default admin/admin
+    "admin": "admin",  # Default admin/admin
 }
 
 
@@ -26,12 +26,10 @@ async def login(req: LoginRequest):
     """Exchange username/password for JWT."""
     from app.config import get_settings
 
-    hashed = DEMO_USERS.get(req.username)
-    if not hashed:
+    expected_password = DEMO_USERS.get(req.username)
+    if expected_password is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
-    from app.core.security import verify_password
-
-    if not verify_password(req.password, hashed):
+    if req.password != expected_password:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     settings = get_settings()
     token = create_access_token(subject=req.username)
