@@ -7,6 +7,13 @@ global:
   evaluation_interval: 15s
 
 scrape_configs:
+  # Docker Compose: NetScope backend metrics
+  - job_name: 'netscope-backend'
+    static_configs:
+      - targets: ['backend:8000']
+    metrics_path: /metrics
+    scrape_interval: 15s
+
   # Kubernetes pods: discover network-observability-agent DaemonSet pods.
   - job_name: 'network-observability'
     kubernetes_sd_configs:
